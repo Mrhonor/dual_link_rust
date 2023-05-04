@@ -1,225 +1,10 @@
 ## 忘记Option
 ![Option Some](img/option_some.png)
 
-
-```RUST
-use std::{rc::Rc, cell::RefCell};
-
-#[derive(Debug)]
-struct Node{
-    data: i32,
-    next: Option<Rc<RefCell<Node>>>,
-    prev: Option<Rc<RefCell<Node>>>,
-}
-
-#[derive(Debug)]
-struct DualLink{
-    len: i32,
-    head: Option<Rc<RefCell<Node>>>,
-   
-}  
-
-
-impl DualLink {    
-    fn new() -> DualLink{
-        return DualLink { len: 0, head: Option::None}
-    }
-
-    fn get(&self, pos: i32) -> i32{
-        if pos > self.len{
-            panic!("Dual Link error!");
-        }
-
-        let mut node = match self.head{
-            Option::Some(ref n) => n.clone(),
-            Option::None => panic!("Dual Link error!"),
-        };
-        for _i in 0..pos{
-            node = match (*node.clone()).borrow().next{
-                Option::Some(ref n) => n.clone(),
-                Option::None => panic!("Dual Link error!"),
-            };
-        }
-
-        return (*node).borrow().data;
-    }
-
-    fn insert(&mut self, data: i32, pos: i32){
-        if pos > self.len{
-            panic!("Dual Link error!");
-        }
-
-        if pos == 0{
-            let new_node = Rc::new(RefCell::new(Node { data: data, next: Option::None, prev: Option::None }));
-            self.head = Some(new_node.clone());
-            (*new_node).borrow_mut().next = Some(new_node.clone());
-            (*new_node).borrow_mut().prev = Some(new_node.clone());
-       
-            self.len += 1;
-            return;
-        }
-        else{
-            let mut node = match self.head{
-                Option::Some(ref n) => n.clone(),
-                Option::None => panic!("Dual Link error!"),
-            };
-            for _i in 1..pos{
-                node = match (*node.clone()).borrow().next{
-                    Option::Some(ref n) => n.clone(),
-                    Option::None => panic!("Dual Link error!"),
-                };
-            }
-
-            let new_node = Rc::new(RefCell::new(Node { data: data, next: Option::None, prev: Option::None }));
-            let next_node = match (*node.clone()).borrow().next{
-                Option::Some(ref n) => n.clone(),
-                Option::None => panic!("Dual Link error!"),
-            };
-            (*new_node).borrow_mut().next = Some(next_node.clone());
-            (*next_node.clone()).borrow_mut().prev = Some(new_node.clone());
-            (*new_node).borrow_mut().prev = Some(node.clone());
-            (*node).borrow_mut().next = Some(new_node.clone());
-            
-       
-            self.len += 1;
-            return;
-        }
-
-    }
-
-    fn search(&self, data: i32) -> Option<Rc<RefCell<Node>>> {
-        if self.len != 0 {
-            let mut node = match self.head{
-                Option::Some(ref n) => n.clone(),
-                Option::None => panic!("Dual Link error!"),
-            };
-            for _i in 0..self.len{
-                if (*node).borrow().data == data{
-                    return Some(node.clone());
-                }
-                else{
-                    node = match (*node.clone()).borrow().next{
-                        Option::Some(ref n) => n.clone(),
-                        Option::None => panic!("Dual Link error!"),
-                    };
-                }
-            }
-        }
-        return Option::None;
-    }
-
-    fn delete(&mut self, pos: i32) -> Option<Rc<RefCell<Node>>>{
-        if pos > self.len{
-            panic!("Dual Link error!");
-        }
-
-        if pos == 0{
-            let node = match self.head{
-                Option::Some(ref n) => n.clone(),
-                Option::None => panic!("Dual Link error!"),
-            };
-            let next_node = match (*node).borrow().next{
-                Option::Some(ref n) => n.clone(),
-                Option::None => panic!("Dual Link error!"),
-            };
-            
-            (*next_node).borrow_mut().prev = match (*node).borrow().prev {
-                Option::Some(ref n) => Some(n.clone()),
-                Option::None => panic!("Dual Link error!"),                
-            };
-
-            self.head = Some(next_node.clone());
-            match (*node).borrow().prev{
-                Option::Some(ref n) => (*n).borrow_mut().next = Some(next_node.clone()),
-                Option::None => panic!("Dual Link error!"),
-            }
-            (*node.clone()).borrow_mut().next = Option::None;
-            (*node.clone()).borrow_mut().prev = Option::None;
-       
-            self.len -= 1;
-            return Some(node);
-        }
-        else{
-            let mut node = match self.head{
-                Option::Some(ref n) => n.clone(),
-                Option::None => panic!("Dual Link error!"),
-            };
-            for _i in 0..pos{
-                node = match &(*node.clone()).borrow().next{
-                    Option::Some(n) => n.clone(),
-                    Option::None => panic!("Dual Link error!"),
-                };
-            }
-
-            let next_node = match (*node).borrow().next{
-                Option::Some(ref n) => n.clone(),
-                Option::None => panic!("Dual Link error!"),
-            };
-            
-            (*next_node).borrow_mut().prev = match (*node).borrow().prev {
-                Option::Some(ref n) => Some(n.clone()),
-                Option::None => panic!("Dual Link error!"),                
-            };
-
-            match (*node).borrow().prev{
-                Option::Some(ref n) => {
-                    (*n.clone()).borrow_mut().next = Some(next_node.clone());
-                },
-                Option::None => panic!("Dual Link error!"),
-            }
-            (*node.clone()).borrow_mut().next = Option::None;
-            (*node.clone()).borrow_mut().prev = Option::None;
-       
-            self.len -= 1;
-            return Some(node);
-
-
-        }
-
-
-    }
-
-}
-
-fn main() {
-
-    let mut head = DualLink::new();
-    head.insert(2, 0);    
-    head.insert(4, 1);    
-    head.insert(5, 2);    
-
-    for i in 0..head.len{
-        println!("{} node data: {}", i, head.get(i));
-    }
-
-    let search_node = head.search(4);
-    match search_node {
-        Option::Some(n) => println!("search node data: {}", (*n).borrow().data),
-        Option::None => println!("search node data: None"),
-    }
-    
-    head.delete(1);
-    println!("second node data: {}", head.get(1));
-    let search_node = head.search(4);
-    match search_node {
-        Option::Some(n) => println!("search node data: {}", (*n).borrow().data),
-        Option::None => println!("search node data: None"),
-    }
-
-    head.delete(0);
-    println!("first node data: {}", head.get(0));
-    let search_node = head.search(2);
-    match search_node {
-        Option::Some(n) => println!("search node data: {}", (*n).borrow().data),
-        Option::None => println!("search node data: None"),
-    }
-    
-}
-```
   
 泛型版本  
 
-```
+```RUST
 use std::{rc::Rc, cell::RefCell};
 
 #[derive(Debug)]
@@ -252,13 +37,13 @@ impl<T: PartialEq + Copy> DualLink<T> {
             Option::None => panic!("Dual Link error!"),
         };
         for _i in 0..pos{
-            node = match (*node.clone()).borrow().next{
+            node = match node.clone().borrow().next{
                 Option::Some(ref n) => n.clone(),
                 Option::None => panic!("Dual Link error!"),
             };
         }
 
-        return (*node).borrow().data;
+        return node.borrow().data;
     }
 
     fn insert(&mut self, data: T, pos: i32){
@@ -269,8 +54,8 @@ impl<T: PartialEq + Copy> DualLink<T> {
         if pos == 0{
             let new_node = Rc::new(RefCell::new(Node { data: data, next: Option::None, prev: Option::None }));
             self.head = Some(new_node.clone());
-            (*new_node).borrow_mut().next = Some(new_node.clone());
-            (*new_node).borrow_mut().prev = Some(new_node.clone());
+            new_node.borrow_mut().next = Some(new_node.clone());
+            new_node.borrow_mut().prev = Some(new_node.clone());
        
             self.len += 1;
             return;
@@ -281,21 +66,21 @@ impl<T: PartialEq + Copy> DualLink<T> {
                 Option::None => panic!("Dual Link error!"),
             };
             for _i in 1..pos{
-                node = match (*node.clone()).borrow().next{
+                node = match node.clone().borrow().next{
                     Option::Some(ref n) => n.clone(),
                     Option::None => panic!("Dual Link error!"),
                 };
             }
 
             let new_node = Rc::new(RefCell::new(Node { data: data, next: Option::None, prev: Option::None }));
-            let next_node = match (*node.clone()).borrow().next{
+            let next_node = match node.clone().borrow().next{
                 Option::Some(ref n) => n.clone(),
                 Option::None => panic!("Dual Link error!"),
             };
-            (*new_node).borrow_mut().next = Some(next_node.clone());
-            (*next_node.clone()).borrow_mut().prev = Some(new_node.clone());
-            (*new_node).borrow_mut().prev = Some(node.clone());
-            (*node).borrow_mut().next = Some(new_node.clone());
+            new_node.borrow_mut().next = Some(next_node.clone());
+            next_node.clone().borrow_mut().prev = Some(new_node.clone());
+            new_node.borrow_mut().prev = Some(node.clone());
+            node.borrow_mut().next = Some(new_node.clone());
             
        
             self.len += 1;
@@ -311,11 +96,11 @@ impl<T: PartialEq + Copy> DualLink<T> {
                 Option::None => panic!("Dual Link error!"),
             };
             for _i in 0..self.len{
-                if (*node).borrow().data == data{
+                if node.borrow().data == data{
                     return Some(node.clone());
                 }
                 else{
-                    node = match (*node.clone()).borrow().next{
+                    node = match node.clone().borrow().next{
                         Option::Some(ref n) => n.clone(),
                         Option::None => panic!("Dual Link error!"),
                     };
@@ -335,23 +120,23 @@ impl<T: PartialEq + Copy> DualLink<T> {
                 Option::Some(ref n) => n.clone(),
                 Option::None => panic!("Dual Link error!"),
             };
-            let next_node = match (*node).borrow().next{
+            let next_node = match node.borrow().next{
                 Option::Some(ref n) => n.clone(),
                 Option::None => panic!("Dual Link error!"),
             };
             
-            (*next_node).borrow_mut().prev = match (*node).borrow().prev {
+            next_node.borrow_mut().prev = match node.borrow().prev {
                 Option::Some(ref n) => Some(n.clone()),
                 Option::None => panic!("Dual Link error!"),                
             };
 
             self.head = Some(next_node.clone());
-            match (*node).borrow().prev{
-                Option::Some(ref n) => (*n).borrow_mut().next = Some(next_node.clone()),
+            match node.borrow().prev{
+                Option::Some(ref n) => n.borrow_mut().next = Some(next_node.clone()),
                 Option::None => panic!("Dual Link error!"),
             }
-            (*node.clone()).borrow_mut().next = Option::None;
-            (*node.clone()).borrow_mut().prev = Option::None;
+            node.clone().borrow_mut().next = Option::None;
+            node.clone().borrow_mut().prev = Option::None;
        
             self.len -= 1;
             return Some(node);
@@ -362,30 +147,30 @@ impl<T: PartialEq + Copy> DualLink<T> {
                 Option::None => panic!("Dual Link error!"),
             };
             for _i in 0..pos{
-                node = match &(*node.clone()).borrow().next{
+                node = match &node.clone().borrow().next{
                     Option::Some(n) => n.clone(),
                     Option::None => panic!("Dual Link error!"),
                 };
             }
 
-            let next_node = match (*node).borrow().next{
+            let next_node = match node.borrow().next{
                 Option::Some(ref n) => n.clone(),
                 Option::None => panic!("Dual Link error!"),
             };
             
-            (*next_node).borrow_mut().prev = match (*node).borrow().prev {
+            next_node.borrow_mut().prev = match node.borrow().prev {
                 Option::Some(ref n) => Some(n.clone()),
                 Option::None => panic!("Dual Link error!"),                
             };
 
-            match (*node).borrow().prev{
+            match node.borrow().prev{
                 Option::Some(ref n) => {
                     (*n.clone()).borrow_mut().next = Some(next_node.clone());
                 },
                 Option::None => panic!("Dual Link error!"),
             }
-            (*node.clone()).borrow_mut().next = Option::None;
-            (*node.clone()).borrow_mut().prev = Option::None;
+            node.clone().borrow_mut().next = Option::None;
+            node.clone().borrow_mut().prev = Option::None;
        
             self.len -= 1;
             return Some(node);
@@ -411,7 +196,7 @@ fn main() {
 
     let search_node = head.search(4);
     match search_node {
-        Option::Some(n) => println!("search node data: {}", (*n).borrow().data),
+        Option::Some(n) => println!("search node data: {}", n.borrow().data),
         Option::None => println!("search node data: None"),
     }
     
@@ -419,7 +204,7 @@ fn main() {
     println!("second node data: {}", head.get(1));
     let search_node = head.search(4);
     match search_node {
-        Option::Some(n) => println!("search node data: {}", (*n).borrow().data),
+        Option::Some(n) => println!("search node data: {}", n.borrow().data),
         Option::None => println!("search node data: None"),
     }
 
@@ -427,7 +212,7 @@ fn main() {
     println!("first node data: {}", head.get(0));
     let search_node = head.search(2);
     match search_node {
-        Option::Some(n) => println!("search node data: {}", (*n).borrow().data),
+        Option::Some(n) => println!("search node data: {}", n.borrow().data),
         Option::None => println!("search node data: None"),
     }
 
@@ -443,7 +228,7 @@ fn main() {
 
     let search_node = head.search("b");
     match search_node {
-        Option::Some(n) => println!("search node data: {}", (*n).borrow().data),
+        Option::Some(n) => println!("search node data: {}", n.borrow().data),
         Option::None => println!("search node data: None"),
     }
     
@@ -451,7 +236,7 @@ fn main() {
     println!("second node data: {}", head.get(1));
     let search_node = head.search("b");
     match search_node {
-        Option::Some(n) => println!("search node data: {}", (*n).borrow().data),
+        Option::Some(n) => println!("search node data: {}", n.borrow().data),
         Option::None => println!("search node data: None"),
     }
 
@@ -459,7 +244,7 @@ fn main() {
     println!("first node data: {}", head.get(0));
     let search_node = head.search("a");
     match search_node {
-        Option::Some(n) => println!("search node data: {}", (*n).borrow().data),
+        Option::Some(n) => println!("search node data: {}", n.borrow().data),
         Option::None => println!("search node data: None"),
     }
     
