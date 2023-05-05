@@ -116,6 +116,18 @@ impl<T: PartialEq + Copy> DualLink<T> {
         }
 
         if pos == 0{
+            if self.len == 1{
+                let node = match self.head{
+                    Option::Some(ref n) => n.clone(),
+                    Option::None => panic!("Dual Link error!"),
+                };
+                self.head = Option::None;
+                self.len -= 1;
+                node.borrow_mut().next = Option::None;
+                node.borrow_mut().prev = Option::None;
+                return Some(node);
+            }
+
             let node = match self.head{
                 Option::Some(ref n) => n.clone(),
                 Option::None => panic!("Dual Link error!"),
@@ -248,6 +260,13 @@ fn main() {
         Option::None => println!("search node data: None"),
     }
     
-}
+    head.delete(0);
+    let search_node = head.search("c");
+    match search_node {
+        Option::Some(n) => println!("search node data: {}", n.borrow().data),
+        Option::None => println!("search node data: None"),
+    } 
 
+
+}
 ```
