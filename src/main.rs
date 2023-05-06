@@ -44,7 +44,7 @@ impl<T: PartialEq + Copy> DualLink<T> {
             panic!("Dual Link error!");
         }
 
-        if pos == 0{
+        if self.len == 0{
             let new_node = Rc::new(RefCell::new(Node { data: data, next: Option::None, prev: Option::None }));
             self.head = Some(new_node.clone());
             new_node.borrow_mut().next = Some(new_node.clone());
@@ -52,6 +52,22 @@ impl<T: PartialEq + Copy> DualLink<T> {
        
             self.len += 1;
             return;
+        }
+
+        if pos == 0{
+            let new_node = Rc::new(RefCell::new(Node { data: data, next: Option::None, prev: Option::None }));
+            let mut node = match self.head{
+                Option::Some(ref n) => n.clone(),
+                Option::None => panic!("Dual Link error!"),
+            };
+            self.head = Some(new_node.clone());
+            new_node.borrow_mut().next = Some(node.clone());
+            new_node.borrow_mut().prev = Some(node.clone());
+            node.borrow_mut().next = Some(new_node.clone());
+            node.borrow_mut().prev = Some(new_node.clone());
+       
+            self.len += 1;
+            return; 
         }
         else{
             let mut node = match self.head{
