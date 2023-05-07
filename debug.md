@@ -2,13 +2,13 @@
 ## BUG 1: 在Match中的move
 * **错误案例**：Figure 1  
 
-![Match bug](dual_link/img/Option_match.png)  
+![Match bug](img/Option_match.png)  
 
 * **bug分析**：
 在match中将borrow()的对象move到了对象n，在代码块结束时n会被销毁，而borrow()对象不能被修改  
 * 当时根据编译器的修改结果：如Figure 2所示  
 
-![Match bug fix](dual_link/img/Option_match2.png)  
+![Match bug fix](img/Option_match2.png)  
 
 * **debug分析**：加入&后，被move的只是一个引用，可以被销毁
 * 在后续学习过程中，对match和指针的了解加深后，发现更好的修改方式：
@@ -21,12 +21,12 @@ match head.borrow().next{
 ## BUG 2: 缺少Clone
 * **错误案例**：Figure 3   
 
-![Rc clone](dual_link/img/RC_clone.jpg)  
+![Rc clone](img/RC_clone.jpg)  
 
 * **bug分析**：没有对node进行clone()，所有权被node.borrow()借走，无法对node再次赋值  
 * **修改结果**：Figure 4  
 
-![Bug fixed](dual_link/img/rc_clone_finished.jpg)
+![Bug fixed](img/rc_clone_finished.jpg)
 
 ## BUG 3: 无头节点实现双向循环链表时double borrow_mut
 * **错误案例**：
